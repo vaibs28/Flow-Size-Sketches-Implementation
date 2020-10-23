@@ -23,11 +23,17 @@ public class ApplicationRunner {
         flowIds[i++] = line;
       }
     }
-
+    System.out.println("******Count Min Implementation******");
     CountMin cm = new CountMin(n, 3, 3000, flowIds);
     cm.recordAll();
     cm.query();
-    System.out.println("Average Error = " + cm.getAverage());
+    System.out.println("Average Error = " + cm.getAverage()+"\n");
+
+    System.out.println("******Counter Sketch Implementation*******");
+    CounterSketch cs = new CounterSketch(n, 3, 3000, flowIds);
+    cs.recordAll();
+    cs.query();
+    System.out.println("Average Error = " + cs.getAverage()+"\n");
   }
 
 }
