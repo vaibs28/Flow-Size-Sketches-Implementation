@@ -90,5 +90,18 @@ public class CountMin {
     return avg;
   }
 
+  public void sort() {
+    List<Map.Entry<String, Integer>> list = new ArrayList<>(estimatedSize.entrySet());
+    Collections.sort(list, ((Map.Entry<String, Integer> e1,
+        Map.Entry<String, Integer> e2) -> e2.getValue() - e1.getValue()));
+    for (int i = 0; i < 100; i++) {
+      Map.Entry<String, Integer> e = list.get(i);
+      String flowId = e.getKey();
+      int estimated = e.getValue();
+      int actual = actualSize.get(flowId);
+      System.out.println(flowId+"\t"+estimated + "\t" +actual);
+    }
+    System.out.println();
+  }
 
 }

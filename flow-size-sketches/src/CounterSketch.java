@@ -9,6 +9,7 @@ public class CounterSketch {
   Map<String, Integer> estimatedSize;
   Map<String, Integer> actualSize;
   Map<String, Integer> error;
+  Set<Integer> seenHashcodes;
   int k;
   int w;
   int n;
@@ -98,6 +99,7 @@ public class CounterSketch {
     } else {
       estimate = (estimates.get(n / 2) + estimates.get((n / 2) - 1)) / 2;
     }
+    estimatedSize.put(flowId, estimate);
     error.put(flowId, estimate - actualSize.get(flowId));
   }
 
@@ -109,5 +111,19 @@ public class CounterSketch {
     }
     avg = total / error.size();
     return avg;
+  }
+
+  public void sort() {
+    List<Map.Entry<String, Integer>> list = new ArrayList<>(estimatedSize.entrySet());
+    Collections.sort(list, ((Map.Entry<String, Integer> e1,
+        Map.Entry<String, Integer> e2) -> e2.getValue() - e1.getValue()));
+    for (int i = 0; i < 100; i++) {
+      Map.Entry<String, Integer> e = list.get(i);
+      String flowId = e.getKey();
+      int estimated = e.getValue();
+      int actual = actualSize.get(flowId);
+      System.out.println(flowId + "\t" + estimated + "\t" + actual);
+    }
+    System.out.println();
   }
 }

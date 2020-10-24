@@ -28,12 +28,14 @@ public class ApplicationRunner {
     cm.recordAll();
     cm.query();
     System.out.println("Average Error = " + cm.getAverage()+"\n");
+    cm.sort();
 
     System.out.println("******Counter Sketch Implementation*******");
     CounterSketch cs = new CounterSketch(n, 3, 3000, flowIds);
     cs.recordAll();
     cs.query();
     System.out.println("Average Error = " + cs.getAverage()+"\n");
+    cs.sort();
   }
 
 }
