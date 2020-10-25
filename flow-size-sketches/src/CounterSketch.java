@@ -6,6 +6,7 @@ public class CounterSketch {
   int[][] counterArr;
   int[][] hashes;
   int[] s;
+  Map<String, Integer> hashcodes;
   Map<String, Integer> estimatedSize;
   Map<String, Integer> actualSize;
   Map<String, Integer> error;
@@ -13,6 +14,8 @@ public class CounterSketch {
   int k;
   int w;
   int n;
+  int neg;
+  int pos;
 
   public CounterSketch(int n, int k, int w, String[] flowIds) {
     this.k = k;
@@ -24,15 +27,28 @@ public class CounterSketch {
     estimatedSize = new HashMap();
     actualSize = new HashMap();
     error = new HashMap();
-    generateHash();
+    hashcodes = new HashMap();
     rand = new Random();
     this.flowIds = flowIds;
+    generateHash();
   }
 
   public void generateHash() {
     for (int i = 0; i < k; i++) {
-      s[i] = Math.abs(rand.nextInt());
+      s[i] = Math.abs(rand.nextInt(65536));
     }
+    for (int i = 0; i < flowIds.length; i++) {
+      String s = flowIds[i];
+      if (s == null)
+        continue;
+      String[] arr = s.split("\\s+");
+      String flowId = arr[0];
+      hashcodes.put(flowId, getRandomNumberUsingNextInt(-65536, 65535));
+    }
+  }
+
+  public int getRandomNumberUsingNextInt(int min, int max) {
+    return rand.nextInt(max - min) + min;
   }
 
   public void recordAll() {
@@ -46,19 +62,29 @@ public class CounterSketch {
       actualSize.put(flowId, Integer.parseInt(flowSize));
       record(flowId);
     }
+    //print();
+  }
+
+  public void print() {
+    System.out.println("neg=" + neg);
+    System.out.println("pos=" + pos);
   }
 
   public void record(String flowId) {
     // get a hash for each of the k arrays by xoring with the string hashcode and record 1
+    int value = actualSize.get(flowId);
     for (int i = 0; i < k; i++) {
-      int value = actualSize.get(flowId);
-
+      int hash = (hashcodes.get(flowId) ^ s[i]) % w;
+      // int hash = (flowId.hashCode() ^ s[i]) % w;
+      char firstBit = getFirstBit(hash);
+      if(firstBit=='0') neg++;
+      else pos++;
+      hash = Math.abs(hash);
       for (int j = 0; j < value; j++) {
-        int hash = Math.abs(flowId.hashCode() ^ s[i]) % w;
-        if (getFirstBit(hash) == '1')
-          counterArr[i][hash]++;
-        else
+        if (firstBit == '0')
           counterArr[i][hash]--;
+        else
+          counterArr[i][hash]++;
       }
 
     }
@@ -66,7 +92,10 @@ public class CounterSketch {
 
   public char getFirstBit(int hash) {
     String binary = Integer.toBinaryString(hash);
-    return binary.charAt(0);
+    //System.out.println(binary);
+    if (binary.length() == 32)
+      return binary.charAt(0);
+    return '0';
   }
 
   public void query() {
@@ -83,15 +112,19 @@ public class CounterSketch {
     int estimate = 0;
     List<Integer> estimates = new ArrayList();
     for (int i = 0; i < k; i++) {
-      int hash = Math.abs(s[i] ^ flowId.hashCode()) % w;
-      if (getFirstBit(hash) == '1') {
-        estimate = counterArr[i][hash];
-      } else {
+      int hash = (hashcodes.get(flowId) ^ s[i]) % w;
+      char firstBit = getFirstBit(hash);
+      hash = Math.abs(hash);
+
+      if (firstBit == '0') {
         estimate = -counterArr[i][hash];
+      } else {
+        estimate = counterArr[i][hash];
       }
       estimates.add(estimate);
     }
     Collections.sort(estimates);
+    // System.out.println(estimates);
     int n = estimates.size();
     estimate = 0;
     if (n % 2 == 1) {
@@ -107,7 +140,7 @@ public class CounterSketch {
     double avg = 0.0;
     double total = 0.0;
     for (String key : error.keySet()) {
-      total += error.get(key);
+      total += Math.abs(error.get(key));
     }
     avg = total / error.size();
     return avg;
