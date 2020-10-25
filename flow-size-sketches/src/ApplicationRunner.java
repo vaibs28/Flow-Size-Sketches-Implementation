@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Arrays;
 
 public class ApplicationRunner {
 
@@ -23,19 +24,27 @@ public class ApplicationRunner {
         flowIds[i++] = line;
       }
     }
+    br.close();
+
     System.out.println("******Count Min Implementation******");
     CountMin cm = new CountMin(n, 3, 3000, flowIds);
     cm.recordAll();
     cm.query();
-    System.out.println("Average Error = " + cm.getAverage()+"\n");
+    System.out.println("Average Error = " + cm.getAverage() + "\n");
     cm.sort();
 
     System.out.println("******Counter Sketch Implementation*******");
     CounterSketch cs = new CounterSketch(n, 3, 3000, flowIds);
     cs.recordAll();
     cs.query();
-    System.out.println("Average Error = " + cs.getAverage()+"\n");
+    System.out.println("Average Error = " + cs.getAverage() + "\n");
     cs.sort();
+
+    System.out.println("******Active Counter Implementation*******");
+    ActiveCounter ac = new ActiveCounter(16, 16);
+    ac.add();
+    System.out.println(Arrays.toString(ac.counter));
+    System.out.println((int)(ac.current * Math.pow(2, ac.exponent)));
   }
 
 }
